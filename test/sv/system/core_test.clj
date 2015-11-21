@@ -22,5 +22,21 @@
 (deftest failed-start
   (let [stopped (atom {})]
     (start-system (components stopped))
-    (println stopped)
-    (assert (= @stopped {:a true :b true}))))
+    (is (= @stopped {:a true :b true}))))
+
+(deftest wildcard-dependency
+  (let [components [{:binds [:handlers :a]
+                     :start [identity :component-a]}
+                    {:binds [:handlers :b]
+                     :start [identity :component-b]}
+                    {:binds [:handlers-dispatcher]
+                     :start [identity [:handlers :*]]}]]
+    (is
+     (= (wildcard-replacements components)
+        {[:handlers :*] [[:handlers :a] [:handlers :b]]}))
+    (is
+     (= (dependency-edges components)
+        [[[:handlers :a] :root]
+         [[:handlers :b] :root]
+         [[:handlers-dispatcher] [:handlers :a]]
+         [[:handlers-dispatcher] [:handlers :b]]]))))

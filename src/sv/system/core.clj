@@ -20,18 +20,66 @@
     dependency-declaration?
     (:start component))))
 
+(defn wildcard? [x]
+  (= x :*))
+
+(defn wildcard-dependency? [x]
+  (and (dependency-declaration? x)
+       (wildcard? (last x))))
+
+;; TODO: assert that no dependency declaration starts with a wildcard
+;;       and that there is always only one wildcard at the end
+(defn wildcard-replacements [components]
+  (let [binds (map :binds components)
+        ;; TODO: maybe memoize edges calculation
+        edges (mapcat
+               dependencies
+               components)
+        dependencies (map second edges)
+        wildcard-dependencies (filter
+                               wildcard-dependency?
+                               dependencies)]
+    (into
+     {}
+     (map
+      (fn [wildcard-dependency]
+        (let [prefix (drop-last wildcard-dependency)]
+          [wildcard-dependency
+           (filter
+            (fn [bind]
+              (= prefix
+                 (take (count prefix) bind)))
+            binds)]))
+      wildcard-dependencies))))
+
+(defn replace-wildcard-dependencies [edges components]
+  (let [replacements (wildcard-replacements components)]
+    (mapcat
+     (fn [edge]
+       (if-let [replacements* (get replacements (second edge))]
+         (map
+          (fn [dependent]
+            [(first edge)
+             dependent])
+          replacements*)
+         [edge]))
+     edges)))
+
 (defn dependency-edges [components]
-  (concat
-   (map
-    (fn [component]
-      [(:binds component) :root])
-    (remove
-     (fn [component]
-       (seq (dependencies component)))
-     components))
-   (mapcat
-    dependencies
-    components)))
+  (let [edges (mapcat
+               dependencies
+               components)]
+    (concat
+     (map
+      (fn [component]
+        [(:binds component) :root])
+      (remove
+       (fn [component]
+         (seq (dependencies component)))
+       components))
+     (replace-wildcard-dependencies
+      edges
+      components))))
 
 (defn dependency-graph [components]
   (reduce
@@ -64,7 +112,7 @@
   (map
    (fn [arg]
      (if (dependency-declaration? arg)
-       (get-in system arg)
+       (get-in system (remove wildcard? arg))
        arg))
    (rest invocation)))
 
