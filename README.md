@@ -83,11 +83,28 @@ example in a minute, but it shows the basic building blocks. The
 started system. Here the component states that it will bind the path
 `[:component-a]` in the system map. The value of :start is a vector,
 which first element is a function (here
-[clojure.core/identity](https://clojuredocs.org/clojure.core/identity)
-). This function will be invoked with the given arguments (the rest of
+[clojure.core/identity](https://clojuredocs.org/clojure.core/identity))
+. This function will be invoked with the given arguments (the rest of
 the vector, here `1`). The return value (here: `1`) will be the value
 of the path (here: `[:component-a]`
 cf. [assoc-in](https://clojuredocs.org/clojure.core/assoc-in)).
+
+Ok let's build something more interesting for the real world. One big
+issue that is handled by the component library is the management of
+stateful objects, which have a lifecylce. An example is a HTTP server
+that binds a port of your operation system and that has to be stopped
+appropriately to free the port and other resources. For the code
+sample we will use [httpkit](http://www.http-kit.org/) a minimal HTTP
+server for Clojure:
+
+       (use 'org.httpkit.server)
+
+       (defn start [ring-handler opts]
+         (server/run-server
+            ring-handler
+            opts))
+
+
 
 ## License
 
