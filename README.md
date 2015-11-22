@@ -149,7 +149,6 @@ message. Notice that the order of the components in the start-system
 call does not matter, since an appropriate order is automatically
 calculated by the library.
 
-
 For sure we also like to stop the system:
 
     (stop-system system)
@@ -184,6 +183,43 @@ invoked with the value under the path (see `:binds`) of the component
 Which is the same syntax that is used for the `:start` section. This
 allows the stop function to use further elements from the system map
 to appropriately stop the component.
+
+As you already noticed, we have hard coded the options for httpkit
+(here ``{:port 8080}`), which is for sure not desirable. Like in the
+case of the system map we will also put the complete configuration
+into a single map. The component get this map to populate the
+component declaration with the configuration parameters. The
+configuration map for our example looks like this:
+
+       (def config
+         {:httpkit {:opts {:port 8080}}})
+
+We change the `httpkit-server` component like this:
+
+       (defn httpkit-server [config]
+         {:binds [:httpkit :server]
+          :start [start [:ring :handler] (-> config :httpkit :opts)]
+          :stop stop})
+
+After also adding one argument to the `hello-handler` component:
+
+       (defn hello-handler [config]
+         {:binds [:ring :handler]
+          :start [hello-handler-fn]})
+
+We can use the `config-components` helper function to start the system:
+
+       (def system
+         (start-system
+           (config-components
+            config
+            [httpkit-server
+             hello-handler])))
+
+Stopping the system still looks the same:
+
+       (stop-system system)
+
 
 ## License
 
