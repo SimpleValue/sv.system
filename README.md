@@ -47,7 +47,18 @@ component-based Clojure system.
 
 ## Design goals
 
-I had the following goals in mind, while designing the library.
+I had the following goals in mind, while designing the library:
+
+- Create an experience with a low complexity overhead, so that even
+  Clojure beginners might consider to build a component-based system.
+
+- Be pure, use plain functions, wherever it is possible (instead of
+  records and protocols)
+
+- Make dependencies a central and declarative aspect of the approach.
+
+- Favor conventions over configuration to provide common application
+  components, which are convenient to use.
 
 ## Usage
 
