@@ -100,11 +100,49 @@ server for Clojure:
        (use 'org.httpkit.server)
 
        (defn start [ring-handler opts]
-         (server/run-server
+         (run-server
             ring-handler
             opts))
 
+       (defn stop [server]
+         (server))
 
+       (defn httpkit-server []
+         {:binds [:httpkit :server]
+          :start [start [:ring :handler] {:port 8080}]
+          :stop stop})
+
+Here you see the first dependency `[:ring :handler]`, which is
+declared under :start. The libary will fetch the value under this path
+in the system map and will substitute the path in the :start
+arguments with the value
+(cf. [get-in](https://clojuredocs.org/clojure.core/get-in)).
+
+The library uses these dependency declarations (here `[:ring
+:handler]`) to figure out an apporpriate start order of the
+components. Therefore we need a component, which binds `[:ring
+:handler]`:
+
+        (defn hello-handler-fn []
+          (fn [request]
+            {:status 200
+             :body "Hello"
+             :content-type "text/plain"}))
+
+        (defn hello-handler []
+          {:binds [:ring :handler]
+           :start [hello-handler-fn]})
+
+
+The `hello-handler` component just binds a Ring handler to the `[:ring
+:handler]` path in the system map:
+
+        {:ring {:handler (hello-handler-fn)}}
+
+Now we can start the system:
+
+    (def system
+      (start-system #{(hello-handler) (httpkit-server)}))
 
 ## License
 
