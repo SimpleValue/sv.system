@@ -221,6 +221,30 @@ Stopping the system still looks the same:
        (stop-system system)
 
 
+## More components
+
+The library already includes a lot more components for different
+areas. It uses the great
+(lein-repack)[https://github.com/zcaudate/lein-repack] to split the
+library into appropriate pieces, which let's you pick only the stuff
+that your application needs.
+
+
+## ToDos
+
+The library is still in its infancy and breaking changes may be
+necessary. However the concepts and implementation is rather straight
+forward, so that you can start to experiment with it for new
+applications or modify it to fit your needs.
+
+There are quite some open ToDos left to turn this thing into a library:
+
+- Build and release a first version on Clojars
+- Document the core functions
+- Document the existing components
+- Add a bigger example
+- ...
+
 ## License
 
 Copyright © 2015 FIXME
