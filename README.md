@@ -104,8 +104,8 @@ server for Clojure:
             ring-handler
             opts))
 
-       (defn stop [server]
-         (server))
+       (defn stop [stop-httpkit]
+         (stop-httpkit))
 
        (defn httpkit-server []
          {:binds [:httpkit :server]
@@ -143,6 +143,47 @@ Now we can start the system:
 
     (def system
       (start-system #{(hello-handler) (httpkit-server)}))
+
+Open `http://localhost:8080/` in your browser to get your Hello
+message. Notice that the order of the components in the start-system
+call does not matter, since an appropriate order is automatically
+calculated by the library.
+
+
+For sure we also like to stop the system:
+
+    (stop-system system)
+
+This works since the `start-system` functions adds the calculated
+start order as meta data to the system map. This order is reversed and
+used by `stop-system` to stop the components in the correct order.
+
+To stop the `httpkit-server` component the function under :stop from
+above is used:
+
+       (defn stop [stop-httpkit]
+         (stop-httpkit))
+
+       (defn httpkit-server []
+         {:binds [:httpkit :server]
+          :start [start [:ring :handler] {:port 8080}]
+          :stop stop})
+
+Httpkit's `run-server` function returns a no-arg function per default
+to shutdown the httpkit server (here: `(stop-httpkit)`). If the value
+of :stop in the component declaration is a function, then it will be
+invoked with the value under the path (see `:binds`) of the component
+(here `[:httpkit :server]`). It would also be possible to define the
+`:stop` section like this:
+
+       (defn httpkit-server []
+         {:binds [:httpkit :server]
+          :start [start [:ring :handler] {:port 8080}]
+          :stop [stop [:httpkit :server]]})
+
+Which is the same syntax that is used for the `:start` section. This
+allows the stop function to use further elements from the system map
+to appropriately stop the component.
 
 ## License
 
