@@ -3,30 +3,38 @@
 
 (defonce system nil)
 
-(defonce components nil)
+(defonce components* nil)
 
 (defn set-components
   [components-fn]
   (alter-var-root
-   #'components
+   #'components*
    (constantly
     components-fn))
   true)
 
 (defn start []
   (assert
-   (not (nil? components))
+   (not (nil? components*))
    "No components defined. Please use sv.system.main/set-components")
-  (alter-var-root
-   #'system
-   (constantly
-    (sys/start-system
-     (components))))
-  true)
+  (if system
+    false
+    (do
+      (alter-var-root
+       #'system
+       (constantly
+        (sys/start-system
+         (components*))))
+      true)))
 
 (defn stop []
-  (sys/stop-system
-   system))
+  (if system
+    (do
+      (sys/stop-system
+       system)
+      (alter-var-root #'system (constantly nil))
+      true)
+    false))
 
 (defn restart []
   (stop)
