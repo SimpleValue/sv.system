@@ -21,10 +21,10 @@ A lot of development environments (I'm looking at you Java) burden the
 developer with long startup times. The Clojure REPL eliminates this
 problem and provides you with an interactive development experience on
 top of the JVM, which is pretty awesome. But even with this mighty
-tool you accumulate more and more state / changes over time, until you
+tool you accumulate more and more state changes over time, until you
 reach a point, where you like to start with a fresh state. Normally
 you stop and restart your application. But this could take from
-anywhere between ten seconds and a minute, depending on your hardware
+anywhere between ten seconds to a minute, depending on your hardware
 and your application.
 
 One of the most compelling reasons to use a component-based system is
@@ -64,25 +64,31 @@ I had the following goals in mind, while designing the library:
 
 A minimal component is defined like this:
 
-  (def component {:binds [:component-a]
-                  :start [identity 1]})
+```clojure
+(def component {:binds [:component-a]
+                :start [identity 1]})
+```
 
 To start a system:
 
-  (use 'sv.system.core)
+```clojure
+(use 'sv.system.core)
 
-  (start-system [component])
+(start-system [component])
+```
 
 This will return:
 
+```clojure
 {:component-a 1}
+```
 
 For sure this is pretty useless and we will look at a real world
 example in a minute, but it shows the basic building blocks. The
-`start-system` will always return a map, which contains the complete
-started system. Here the component states that it will bind the path
-`[:component-a]` in the system map. The value of :start is a vector,
-which first element is a function (here
+`start-system` function will always return a map, which contains the
+complete started system. Here the component describes that it will
+bind the path `[:component-a]` in the system map. The value of :start
+is a vector, which first element is a function (here
 [clojure.core/identity](https://clojuredocs.org/clojure.core/identity))
 . This function will be invoked with the given arguments (the rest of
 the vector, here `1`). The return value (here: `1`) will be the value
@@ -97,20 +103,22 @@ appropriately to free the port and other resources. For the code
 sample we will use [httpkit](http://www.http-kit.org/) a minimal HTTP
 server for Clojure:
 
-       (use 'org.httpkit.server)
+```clojure
+(use 'org.httpkit.server)
 
-       (defn start [ring-handler opts]
-         (run-server
-            ring-handler
-            opts))
+(defn start [ring-handler opts]
+  (run-server
+   ring-handler
+   opts))
 
-       (defn stop [stop-httpkit]
-         (stop-httpkit))
+(defn stop [stop-httpkit]
+  (stop-httpkit))
 
-       (defn httpkit-server []
-         {:binds [:httpkit :server]
-          :start [start [:ring :handler] {:port 8080}]
-          :stop stop})
+(defn httpkit-server []
+  {:binds [:httpkit :server]
+   :start [start [:ring :handler] {:port 8080}]
+   :stop stop})
+```
 
 Here you see the first dependency `[:ring :handler]`, which is
 declared under :start. The libary will fetch the value under this path
@@ -123,35 +131,42 @@ The library uses these dependency declarations (here `[:ring
 components. Therefore we need a component, which binds `[:ring
 :handler]`:
 
-        (defn hello-handler-fn []
-          (fn [request]
-            {:status 200
-             :body "Hello"
-             :content-type "text/plain"}))
+```clojure
+(defn hello-handler-fn []
+  (fn [request]
+    {:status 200
+     :body "Hello"
+     :content-type "text/plain"}))
 
-        (defn hello-handler []
-          {:binds [:ring :handler]
-           :start [hello-handler-fn]})
-
+(defn hello-handler []
+  {:binds [:ring :handler]
+   :start [hello-handler-fn]})
+```
 
 The `hello-handler` component just binds a Ring handler to the `[:ring
 :handler]` path in the system map:
 
-        {:ring {:handler (hello-handler-fn)}}
+```clojure
+{:ring {:handler (hello-handler-fn)}}
+```
 
 Now we can start the system:
 
-    (def system
-      (start-system #{(hello-handler) (httpkit-server)}))
+```clojure
+(def system
+  (start-system #{(hello-handler) (httpkit-server)}))
+```
 
-Open `http://localhost:8080/` in your browser to get your Hello
-message. Notice that the order of the components in the start-system
-call does not matter, since an appropriate order is automatically
-calculated by the library.
+Open [http://localhost:8080/](http://localhost:8080/) in your browser
+to get your Hello message. Note that the order of the components in
+the start-system call does not matter, since an appropriate order is
+automatically calculated by the library.
 
 For sure we also like to stop the system:
 
-    (stop-system system)
+```clojure
+(stop-system system)
+```
 
 This works since the `start-system` functions adds the calculated
 start order as meta data to the system map. This order is reversed and
@@ -160,13 +175,15 @@ used by `stop-system` to stop the components in the correct order.
 To stop the `httpkit-server` component the function under :stop from
 above is used:
 
-       (defn stop [stop-httpkit]
-         (stop-httpkit))
+```clojure
+(defn stop [stop-httpkit]
+  (stop-httpkit))
 
-       (defn httpkit-server []
-         {:binds [:httpkit :server]
-          :start [start [:ring :handler] {:port 8080}]
-          :stop stop})
+(defn httpkit-server []
+  {:binds [:httpkit :server]
+   :start [start [:ring :handler] {:port 8080}]
+   :stop stop})
+```
 
 Httpkit's `run-server` function returns a no-arg function per default
 to shutdown the httpkit server (here: `(stop-httpkit)`). If the value
@@ -175,59 +192,70 @@ invoked with the value under the path (see `:binds`) of the component
 (here `[:httpkit :server]`). It would also be possible to define the
 `:stop` section like this:
 
-       (defn httpkit-server []
-         {:binds [:httpkit :server]
-          :start [start [:ring :handler] {:port 8080}]
-          :stop [stop [:httpkit :server]]})
+```clojure
+(defn httpkit-server []
+  {:binds [:httpkit :server]
+   :start [start [:ring :handler] {:port 8080}]
+   :stop [stop [:httpkit :server]]})
+```
 
 Which is the same syntax that is used for the `:start` section. This
 allows the stop function to use further elements from the system map
 to appropriately stop the component.
 
-As you already noticed, we have hard coded the options for httpkit
-(here ``{:port 8080}`), which is for sure not desirable. Like in the
+As you already noticed, we have hard-coded the options for httpkit
+(here `{:port 8080}`), which is for sure not desirable. Like in the
 case of the system map we will also put the complete configuration
 into a single map. The component get this map to populate the
 component declaration with the configuration parameters. The
 configuration map for our example looks like this:
 
-       (def config
-         {:httpkit {:opts {:port 8080}}})
+```clojure
+(def config
+  {:httpkit {:opts {:port 8080}}})
+```
 
 We change the `httpkit-server` component like this:
 
-       (defn httpkit-server [config]
-         {:binds [:httpkit :server]
-          :start [start [:ring :handler] (-> config :httpkit :opts)]
-          :stop stop})
+```clojure
+(defn httpkit-server [config]
+  {:binds [:httpkit :server]
+   :start [start [:ring :handler] (-> config :httpkit :opts)]
+   :stop stop})
+```
 
 After also adding one argument to the `hello-handler` component:
 
-       (defn hello-handler [config]
-         {:binds [:ring :handler]
-          :start [hello-handler-fn]})
+```clojure
+(defn hello-handler [config]
+  {:binds [:ring :handler]
+   :start [hello-handler-fn]})
+```
 
 We can use the `config-components` helper function to start the system:
 
-       (def system
-         (start-system
-           (config-components
-            config
-            [httpkit-server
-             hello-handler])))
+```clojure
+(def system
+  (start-system
+   (config-components
+    config
+    [httpkit-server
+     hello-handler])))
+```
 
 Stopping the system still looks the same:
 
-       (stop-system system)
-
+```clojure
+(stop-system system)
+```
 
 ## More components
 
 The library already includes a lot more components for different
-areas. It uses the great
-(lein-repack)[https://github.com/zcaudate/lein-repack] to split the
-library into appropriate pieces, which let's you pick only the stuff
-that your application needs.
+areas. It uses the great [lein-repack
+library](https://github.com/zcaudate/lein-repack) to split the library
+into appropriate pieces, which let's you pick only the stuff that your
+application needs.
 
 
 ## ToDos
@@ -239,15 +267,24 @@ applications or modify it to fit your needs.
 
 There are several open ToDos left to turn this thing into a library:
 
+- Receive and incorporate external feedback
+
+- Add more checks for invariants (like don't start, if a dependency is
+  missing)
+
 - Build and release a first version on Clojars
+
 - Document the core functions
+
 - Document the existing components
+
 - Add a bigger example
+
 - ...
 
 ## License
 
-Copyright © 2015 FIXME
+Copyright © 2015 Max Weber (SimpleValue UG)
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
