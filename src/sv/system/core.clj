@@ -4,7 +4,7 @@
 
 (defn dependency-declaration?
   "A dependency declaration is a vector with keywords like:
-   [:ring :handler] 
+   [:ring :handler]
 
    It is the path to the dependency in the system
    map (c.f. clojure.core/get-in)."
@@ -141,31 +141,33 @@
                         (:binds component))
                    e)))))
 
+(defn start-components [order]
+  (loop [system {}
+         started []
+         left order]
+    (if-let [component (first left)]
+      (do
+        (log/info "starting" (:binds component))
+        (let [c (try
+                  (invoke-start system component)
+                  (catch Exception e
+                    (log/error "component start failed" e)
+                    ::component-start-failed))]
+          (if (= ::component-start-failed c)
+            (do
+              (log/error "stopping system since start failed")
+              (stop-components system (reverse started))
+              false)
+            (let [new-system (assoc-in system (:binds component) c)]
+              (recur new-system
+                     (conj started component)
+                     (rest left))))))
+      system)))
+
 ;; TODO: stop system if some parts fail to start
 (defn start-system [components]
   (let [order (start-order components)
-        system
-        (loop [system {}
-               started []
-               left order]
-          (if-let [component (first left)]
-            (do
-              (log/info "starting" (:binds component))
-              (let [c (try
-                        (invoke-start system component)
-                        (catch Exception e
-                          (log/error "component start failed" e)
-                          ::component-start-failed))]
-                (if (= ::component-start-failed c)
-                  (do
-                    (log/error "stopping system since start failed")
-                    (stop-components system (reverse started))
-                    false)
-                  (let [new-system (assoc-in system (:binds component) c)]
-                    (recur new-system
-                           (conj started component)
-                           (rest left))))))            
-            system))]
+        system (start-components order)]
     (when system
       (vary-meta
        system
@@ -183,4 +185,3 @@
     (fn [component]
       (component config))
     components)))
-
