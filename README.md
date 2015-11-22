@@ -43,7 +43,7 @@ on component ([modular](https://github.com/juxt/modular/) or
 [system](https://github.com/danielsz/system) for example).
 
 sv.system is only my two cents for this problem space of
-component-based Clojure system.
+component-based Clojure systems.
 
 ## Design goals
 
@@ -62,7 +62,32 @@ I had the following goals in mind, while designing the library:
 
 ## Usage
 
-FIXME
+A minimal component is defined like this:
+
+  (def component {:binds [:component-a]
+                  :start [identity 1]})
+
+To start a system:
+
+  (use 'sv.system.core)
+
+  (start-system [component])
+
+This will return:
+
+{:component-a 1}
+
+For sure this is pretty useless and we will look at a real world
+example in a minute, but it shows the basic building blocks. The
+`start-system` will always return a map, which contains the complete
+started system. Here the component states that it will bind the path
+`[:component-a]` in the system map. The value of :start is a vector,
+which first element is a function (here
+[clojure.core/identity](https://clojuredocs.org/clojure.core/identity)
+). This function will be invoked with the given arguments (the rest of
+the vector, here `1`). The return value (here: `1`) will be the value
+of the path (here: `[:component-a]`
+cf. [assoc-in](https://clojuredocs.org/clojure.core/assoc-in)).
 
 ## License
 
