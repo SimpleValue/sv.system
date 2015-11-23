@@ -141,6 +141,9 @@
                         (:binds component))
                    e)))))
 
+(defn- exception? [x]
+  (instance? java.lang.Exception x))
+
 (defn start-components [order]
   (loop [system {}
          started []
@@ -152,12 +155,17 @@
                   (invoke-start system component)
                   (catch Exception e
                     (log/error "component start failed" e)
-                    ::component-start-failed))]
-          (if (= ::component-start-failed c)
+                    e))]
+          (if (exception? c)
             (do
-              (log/error "stopping system since start failed")
+              (log/error "stopping system since start failed" c)
               (stop-components system (reverse started))
-              false)
+              (throw
+               (ex-info
+                "system has been stopped since start failed"
+                {:started-components (map :binds started)
+                 :failed-component (:binds component)}
+                c)))
             (let [new-system (assoc-in system (:binds component) c)]
               (recur new-system
                      (conj started component)

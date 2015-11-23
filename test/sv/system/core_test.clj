@@ -12,7 +12,7 @@
             [:component-a]]
     :stop [(fn []
              (swap! stopped assoc :b true))]}
-   {:bind [:c]
+   {:binds [:c]
     :start [(fn [component-b]
               (throw (Exception. "starting c failed")))
             [:b]]
@@ -20,8 +20,14 @@
              (swap! stopped assoc :c true))]}])
 
 (deftest failed-start
-  (let [stopped (atom {})]
-    (start-system (components stopped))
+  (let [stopped (atom {})
+        exception (is
+                   (thrown?
+                    clojure.lang.ExceptionInfo
+                    (start-system (components stopped))))
+        ex-data (ex-data exception)]
+    (is (= (:started-components ex-data) [[:a] [:b]]))
+    (is (= (:failed-component ex-data) [:c]))
     (is (= @stopped {:a true :b true}))))
 
 (deftest wildcard-dependency
