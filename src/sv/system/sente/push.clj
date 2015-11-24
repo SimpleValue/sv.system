@@ -8,7 +8,7 @@
         ch (chan)]
     (go-loop []
       (let [message (<! ch)]
-        (if (= message ::stop)
+        (if (nil? message)
           (log/info "stopping sente-push")
           (do
             (try
@@ -19,7 +19,6 @@
     ch))
 
 (defn stop [ch]
-  (>!! ch ::stop)
   (close! ch))
 
 (defn sente-push [config]
