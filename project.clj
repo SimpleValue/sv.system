@@ -6,7 +6,9 @@
                  [org.clojure/core.async "0.2.374"]
                  [org.clojure/tools.logging "0.3.1"]
                  [com.stuartsierra/dependency "0.2.0"]
+                 [ring/ring-core "1.4.0"]
                  [http-kit "2.1.18"]
+                 [com.taoensso/sente "1.6.0"]
                  [com.datomic/datomic-free "0.9.5186"
                   :exclusions [org.slf4j/slf4j-nop]]]
   

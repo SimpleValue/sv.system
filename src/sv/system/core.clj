@@ -189,7 +189,10 @@
 
 (defn config-components [config components]
   (doall
-   (map
+   (mapcat
     (fn [component]
-      (component config))
+      (let [c (component config)]
+        (if (sequential? c)
+          c
+          [c])))
     components)))
