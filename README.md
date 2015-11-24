@@ -249,6 +249,71 @@ Stopping the system still looks the same:
 (stop-system system)
 ```
 
+## Wildcard dependencies
+
+Sometimes a component depends on a bunch of other components that it
+doesn't know in advance. An example of such a component is
+`sv.system.ring.handlers`:
+
+```clojure
+(defn start [handlers]
+  (fn [request]
+    (some
+     (fn [handler]
+       (handler request))
+     (vals handlers))))
+
+(defn handlers [config]
+  {:binds [:ring :handlers-dispatcher]
+   :start [start [:ring :handlers :*]]})
+```
+
+It binds a ring handler under `[:ring :handlers-dispatcher]` that
+requests each handler under `[:ring :handlers :*]` to handle the ring
+request. The last element `:*` of the latter path is a wildcard. Only
+one wildcard at the end of a path is allowed. Other components can
+register ring handlers under this path:
+
+```clojure
+(require 'sv.system.ring.handlers
+         'sv.system.httpkit.core
+         '[sv.system.core :refer :all])
+
+(defn hello-handler-fn []
+  (fn [request]
+    {:status 200
+     :body "Hello"
+     :content-type "text/plain"}))
+
+(def config
+  {:httpkit {:opts {:port 8080}}})
+
+(def system
+  (start-system
+   [(sv.system.ring.handlers/handlers config)
+    (sv.system.httpkit.core/httpkit-server config)
+    {:binds [:ring :handlers ::hello]
+     :start [hello-handler-fn]}
+    {:binds [:ring :handler]
+     :start [identity [:ring :handlers-dispatcher]]}]))
+```
+
+This example also shows how an ad hoc component can be used to wire
+different components of the system:
+
+```clojure
+{:binds [:ring :handler]
+ :start [identity [:ring :handlers-dispatcher]]}
+```
+
+Here we just register the `[:ring :handlers-dispatcher]` as `[:ring
+:handler]`, so that the httpkit component finds a main ring
+handler. Thereby the `sv.system.ring.handlers` component is also
+decoupled from the context, in which it is used by the system. As an
+example the ring handler `[:ring :handlers-dispatcher]` could also be
+wrapped by some ring middleware before it is bound to `[:ring
+:handler]` in the system map.
+
 ## More components
 
 The library already includes a lot more components for different
