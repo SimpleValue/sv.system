@@ -10,7 +10,8 @@
                  [http-kit "2.1.18"]
                  [com.taoensso/sente "1.6.0"]
                  [com.datomic/datomic-free "0.9.5186"
-                  :exclusions [org.slf4j/slf4j-nop]]]
+                  :exclusions [org.slf4j/slf4j-nop]]
+                 [sv.rpc/ring "0.1.0-SNAPSHOT"]]
   
   :profiles {:dev {:dependencies [[org.slf4j/slf4j-simple "1.7.13"]]
                    :plugins [[lein-repack "0.2.10"]]}}
