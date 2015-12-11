@@ -11,7 +11,8 @@
                  [com.taoensso/sente "1.6.0"]
                  [com.datomic/datomic-free "0.9.5186"
                   :exclusions [org.slf4j/slf4j-nop]]
-                 [sv.rpc/ring "0.1.0-SNAPSHOT"]]
+                 [sv.rpc/ring "0.1.0-SNAPSHOT"]
+                 [org.clojure/tools.nrepl "0.2.11"]]
   
   :profiles {:dev {:dependencies [[org.slf4j/slf4j-simple "1.7.13"]]
                    :plugins [[lein-repack "0.2.10"]]}}
