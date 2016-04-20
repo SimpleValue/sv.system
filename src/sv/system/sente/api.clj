@@ -1,16 +1,21 @@
 (ns sv.system.sente.api
-  (:require [sv.system.main :as m]
-            [sv.system.var-bind :as v]))
+  (:require [sv.system.main :as m]))
 
-(def ch-chsk) ; ChannelSocket's receive channel
+(defn get-ch-chsk
+  "Returns ChannelSocket's receive channel"
+  []
+  (get-in m/system [:sente :api :ch-recv]))
 
-(def chsk-send!) ; ChannelSocket's send API (fn [user-id event]) event: [:my-app/some-req {:data "data"}]
+(defn chsk-send!
+  "ChannelSocket's send API (fn [user-id event])
+  event: [:my-app/some-req {:data \"data\"}]"
+  [& args]
+  (if-let [send-fn (get-in m/system [:sente :api :send-fn])]
+    (apply send-fn args)
+    (throw
+     (ex-info "[:sente :api :send-fn] is not bound in sv.system.main/system."))))
 
-(def connected-uids) ; Watchable, read-only atom
-
-(v/watch-var
- #'m/system
- ::sente
- {#'ch-chsk [:sente :api :ch-recv]
-  #'chsk-send! [:sente :api :send-fn]
-  #'connected-uids [:sente :api :connected-uids]})
+(defn get-connected-uids
+  "Watchable, read-only atom."
+  []
+  (get-in m/system [:sente :api :connected-uids]))
