@@ -17,15 +17,14 @@ Bret Victor here:
 
 https://www.youtube.com/watch?v=-QJytzcd7Wo
 
-A lot of development environments (I'm looking at you Java) burden the
-developer with long startup times. The Clojure REPL eliminates this
-problem and provides you with an interactive development experience on
-top of the JVM, which is pretty awesome. But even with this mighty
-tool you accumulate more and more state changes over time, until you
-reach a point, where you like to start with a fresh state. Normally
-you stop and restart your application. But this could take from
-anywhere between ten seconds to a minute, depending on your hardware
-and your application.
+A lot of development environments burden the developer with long
+startup times. The Clojure REPL eliminates this problem and provides
+you with an interactive development experience on top of the JVM,
+which is great. But even with this mighty tool you accumulate more and
+more state changes over time, until you reach a point, where you like
+to start with a fresh state. Normally you stop and restart your
+application. But this could take from anywhere between ten seconds to
+a minute, depending on your hardware and your application.
 
 One of the most compelling reasons to use a component-based system is
 that it provides you essentially with a reset button for your
@@ -59,6 +58,25 @@ I had the following goals in mind, while designing the library:
 
 - Favor conventions over configuration to provide common application
   components, which are convenient to use.
+
+## Install
+
+Add the following dependency to your `project.clj` file:
+
+[![Clojars Project](https://img.shields.io/clojars/v/sv/system.core.svg)](https://clojars.org/sv/system.core)
+
+There are more [sv.system components](#more-components) for common
+tasks.
+
+## Examples
+
+Two examples are provided to see sv.system and its components in
+action:
+
+- [hello-world](https://github.com/SimpleValue/sv.system.examples/tree/master/hello-world) a minimal example how to expose a Ring handler via httpkit in a sv.system based application.
+
+- [address-book](https://github.com/SimpleValue/sv.system.examples/tree/master/address-book) shows how to structure an application that uses sv.system and
+  several of its components.
 
 ## Usage
 
@@ -316,40 +334,38 @@ wrapped by some ring middleware before it is bound to `[:ring
 
 ## More components
 
-The library already includes a lot more components for different
-areas. It uses the great [lein-repack
-library](https://github.com/zcaudate/lein-repack) to split the library
-into appropriate pieces, which let's you pick only the stuff that your
-application needs.
+There are some sv.system components for common tasks:
 
+- [sv.system.datomic](https://github.com/SimpleValue/sv.system.datomic) use Datomic in a sv.system-based application. [![Clojars Project](https://img.shields.io/clojars/v/sv/system.datomic.svg)](https://clojars.org/sv/system.datomic)
 
-## ToDos
+- [sv.system.httpkit](https://github.com/SimpleValue/sv.system.httpkit)
+  use httpkit as HTTP / Ring server [![Clojars
+  Project](https://img.shields.io/clojars/v/sv/system.httpkit.svg)](https://clojars.org/sv/system.httpkit)
 
-The library is still in its infancy and breaking changes may be
-necessary. However the concepts and the implementation is rather
-straight forward, so that you can start to experiment with it for new
-applications or modify it to fit your needs.
+- [sv.system.main](https://github.com/SimpleValue/sv.system.main)
+  provides some convenience functions to establish a system based on
+  sv.system [![Clojars Project](https://img.shields.io/clojars/v/sv/system.main.svg)](https://clojars.org/sv/system.main)
 
-There are several open ToDos left to turn this thing into a library:
+- [sv.system.nrepl](https://github.com/SimpleValue/sv.system.nrepl) use a nREPL server in a sv.system-based application [![Clojars Project](https://img.shields.io/clojars/v/sv/system.nrepl.svg)](https://clojars.org/sv/system.nrepl)
 
-- Receive and incorporate external feedback
+- [sv.system.ring](https://github.com/SimpleValue/sv.system.ring) a
+  [Ring](https://github.com/ring-clojure/ring) integration
+  [![Clojars Project](https://img.shields.io/clojars/v/sv/system.ring.svg)](https://clojars.org/sv/system.ring)
 
-- Add more checks for invariants (like don't start, if a dependency is
-  missing)
+- [sv.system.rpc](https://github.com/SimpleValue/sv.system.rpc) expose
+  Clojure functions as remote procedures which can be used by
+  ClojureScript clients [![Clojars
+  Project](https://img.shields.io/clojars/v/sv/system.rpc.svg)](https://clojars.org/sv/system.rpc)
 
-- Build and release a first version on Clojars
+- [sv.system.sente](https://github.com/SimpleValue/sv.system.sente)
+  uses [Sente](https://github.com/ptaoussanis/sente) to provide a
+  WebSocket endpoint [![Clojars
+  Project](https://img.shields.io/clojars/v/sv/system.sente.svg)](https://clojars.org/sv/system.sente)
 
-- Document the core functions
-
-- Document the existing components
-
-- Add a bigger example
-
-- ...
 
 ## License
 
-Copyright © 2015 Max Weber (SimpleValue UG)
+Copyright © 2016 Max Weber (SimpleValue UG)
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
